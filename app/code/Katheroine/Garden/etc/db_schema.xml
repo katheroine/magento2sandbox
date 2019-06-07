@@ -1,0 +1,9 @@
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="katheroine_garden_fruits" resource="default" engine="innodb" comment="Fruits from our garden">
+        <column xsi:type="int" name="id" unsigned="false" nullable="false" identity="true" comment="Fruit ID"/>
+        <column xsi:type="text" name="name" nullable="true" comment="Common name of the fruit"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+    </table>
+</schema>
