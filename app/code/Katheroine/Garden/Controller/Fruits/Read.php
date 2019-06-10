@@ -29,7 +29,8 @@ class Read extends Action
      */
     public function execute()
     {
-        $id = $this->getRequest()->getParam('id');
+        $id = $this->getRequest()
+            ->getParam('id');
 
         if (is_null($id)) {
             echo __('Please, give the ID of the chosen fruit');
@@ -37,20 +38,13 @@ class Read extends Action
             return;
         }
 
-        // It's naive solution.
-        // There should not be loaded more records than defined by the search criteria
-        // (in this case: ID).
-        $fruits = $this->fruitFactory->create()
-            ->getCollection()
-            ->getItemsByColumnValue('id', $id);
-
-        if (empty($fruits)) {
+        $fruit = $this->fruitFactory->create()
+            ->load($id);
+        if (empty($fruit->getId())) {
             echo __("There's no fruit with ID {$id}");
 
             return;
         }
-
-        $fruit = $fruits[0];
 
         echo "<table><tr><td>id</td><td>name</td></tr>
                 <tr><td>{$fruit->getData('id')}</td><td>{$fruit->getData('name')}</td></tr>
