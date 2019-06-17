@@ -8,6 +8,7 @@ use Katheroine\Forest\Model\TreeFactory;
 use Katheroine\Forest\Model\ResourceModel\Tree as TreeResource;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Exception\AlreadyExistsException;
 
 class Setup extends Action
 {
@@ -39,19 +40,32 @@ class Setup extends Action
 
     /**
      * @return ResponseInterface|ResultInterface|void
+     * @throws AlreadyExistsException
      */
     public function execute()
     {
-        $tree1 = $this->treeFactory->create();
-        $tree1->setData('name', 'oak');
-        $this->treeResource->save($tree1);
-        $tree2 = $this->treeFactory->create();
-        $tree2->setData('name', 'beech');
-        $this->treeResource->save($tree2);
-        $tree3 = $this->treeFactory->create();
-        $tree3->setData('name', 'larch');
-        $this->treeResource->save($tree3);
+        $this->createTree('oak', $this->treeFactory::TREE_TYPE_BROADLEAVED, false);
+        $this->createTree('beech', $this->treeFactory::TREE_TYPE_BROADLEAVED, false);
+        $this->createTree('larch', $this->treeFactory::TREE_TYPE_CONIFEROUS, true);
 
         echo 'Done.';
+    }
+
+    /**
+     * @param string $name
+     * @param string $type
+     * @param bool $allYear
+     * @throws AlreadyExistsException
+     */
+    private function createTree(
+        string $name,
+        string $type,
+        bool $allYear
+    ) {
+        $tree = $this->treeFactory->create();
+        $tree->setData('name', $name);
+        $tree->setData('type', $type);
+        $tree->setData('all-year', $allYear);
+        $this->treeResource->save($tree);
     }
 }
