@@ -12,9 +12,7 @@ use Katheroine\Forest\Model\TreeFactory;
 use Katheroine\Forest\Model\TreeRepository;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
-use Magento\Framework\Exception\InputException;
 use Katheroine\Forest\Model\Tree;
-use Magento\Framework\App\RequestInterface;
 
 class Index extends Action
 {
@@ -79,37 +77,50 @@ class Index extends Action
 
     /**
      * @return ResponseInterface|ResultInterface|void
-     * @throws InputException
      */
     public function execute()
     {
         $invalidConditions = $this->getInvalidConditions();
 
         if (!empty($invalidConditions)) {
-            echo __('Trees entities have no fields ' . implode(',', array_keys($invalidConditions)) .'.');
+            $this->renderInvalidConditions($invalidConditions);
 
             return;
         }
 
+        $this->initSearchCriteria();
+        $trees = $this->treeRepository->getList($this->searchCriteria);
+
+        $this->renderTreesList($trees);
+    }
+
+    private function initSearchCriteria(): void
+    {
+        $this->initFilterGroup();
+        $this->searchCriteria->setFilterGroups([
+            $this->filterGroup
+        ]);
+
+        $this->initSortOrder();
+        $this->searchCriteria->setSortOrders([$this->sortOrder]);
+
+        $this->searchCriteria->setCurrentPage(1);
+    }
+
+    private function initFilterGroup(): void
+    {
         $searchingConditions = $this->getTreeSearchingConditions();
 
         $filters = $this->buildFiltersFromConditions($searchingConditions);
 
         $this->filterGroup->setFilters($filters);
+    }
 
-        $this->searchCriteria->setFilterGroups([$this->filterGroup]);
-
+    private function initSortOrder(): void
+    {
         $this->sortOrder
             ->setField('name')
             ->setDirection('ASC');
-
-        $this->searchCriteria->setSortOrders([$this->sortOrder]);
-
-        $this->searchCriteria->setCurrentPage(1);
-
-        $trees = $this->treeRepository->getList($this->searchCriteria);
-
-        $this->renderView($trees);
     }
 
     /**
@@ -170,10 +181,29 @@ class Index extends Action
     }
 
     /**
-     * @param Tree[] $trees
-     * @return array
+     * @param array $invalidConditions
      */
-    private function renderView($trees): array
+    private function renderInvalidConditions($invalidConditions): void
+    {
+        $invalidFields = array_keys($invalidConditions);
+
+        $pluralDetected = count($invalidFields) > 1;
+
+        if ($pluralDetected) {
+            $invalidFieldsListing = implode(', ', $invalidFields);
+            $message = __('Trees entities have no fields ') . $invalidFieldsListing .'.';
+        } else {
+            $invalidField = $invalidFields[0];
+            $message = __('Trees entities have no field ') . $invalidField .'.';
+        }
+
+        echo '<p>' . $message . '</p>';
+    }
+
+    /**
+     * @param Tree[] $trees
+     */
+    private function renderTreesList($trees): void
     {
         echo '<table><tr><td>id</td><td>name</td></tr>';
 
