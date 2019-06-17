@@ -12,7 +12,7 @@ use Katheroine\Forest\Model\TreeFactory;
 use Katheroine\Forest\Model\TreeRepository;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
-use Katheroine\Forest\Model\Tree;
+use Katheroine\Forest\Model\ResourceModel\Tree\Collection as TreeCollection;
 
 class Index extends Action
 {
@@ -45,6 +45,16 @@ class Index extends Action
      * @var TreeRepository
      */
     private $treeRepository;
+
+    /**
+     * @var null|bool
+     */
+    private $conditionsAreValid;
+
+    /**
+     * @var null|array
+     */
+    private $invalidConditions;
 
 
     /**
@@ -80,18 +90,78 @@ class Index extends Action
      */
     public function execute()
     {
-        $invalidConditions = $this->getInvalidConditions();
+        $this->validateConditions();
 
-        if (!empty($invalidConditions)) {
-            $this->renderInvalidConditions($invalidConditions);
+        if (!$this->conditionsAreValid) {
+            $this->renderInvalidConditions();
 
             return;
         }
 
+        $this->renderTreesList();
+    }
+
+    private function validateConditions(): void
+    {
+        $this->invalidConditions = $this->getInvalidConditions();
+
+        $this->conditionsAreValid = empty($this->invalidConditions);
+    }
+
+    /**
+     * @return array
+     */
+    private function getInvalidConditions(): array
+    {
+        $requestParams = $this->getRequest()
+            ->getParams();
+
+        $invalidConditions = array_filter($requestParams, function($paramValue, $paramKey) {
+            return !in_array($paramKey, $this->treeFactory::TREE_FIELDS, \true);
+        }, ARRAY_FILTER_USE_BOTH);
+
+        return $invalidConditions;
+    }
+
+    private function renderInvalidConditions(): void
+    {
+        $invalidFields = array_keys($this->invalidConditions);
+
+        $pluralDetected = count($invalidFields) > 1;
+
+        if ($pluralDetected) {
+            $invalidFieldsListing = implode(', ', $invalidFields);
+            $message = __('Trees entities have no fields ') . $invalidFieldsListing .'.';
+        } else {
+            $invalidField = $invalidFields[0];
+            $message = __('Trees entities have no field ') . $invalidField .'.';
+        }
+
+        echo '<p>' . $message . '</p>';
+    }
+
+    private function renderTreesList(): void
+    {
+        $trees = $this->loadTrees();
+
+        echo '<table><tr><td>id</td><td>name</td></tr>';
+
+        foreach($trees as $tree) {
+            echo "<tr><td>{$tree->getData('id')}</td><td>{$tree->getData('name')}</td></tr>";
+        }
+
+        echo '</table>';
+    }
+
+    /**
+     * @return TreeCollection
+     */
+    private function loadTrees(): TreeCollection
+    {
         $this->initSearchCriteria();
         $trees = $this->treeRepository->getList($this->searchCriteria);
 
-        $this->renderTreesList($trees);
+        return $trees;
     }
 
     private function initSearchCriteria(): void
@@ -126,21 +196,6 @@ class Index extends Action
     /**
      * @return array
      */
-    private function getInvalidConditions(): array
-    {
-        $requestParams = $this->getRequest()
-            ->getParams();
-
-        $invalidConditions = array_filter($requestParams, function($paramValue, $paramKey) {
-            return !in_array($paramKey, $this->treeFactory::TREE_FIELDS, \true);
-        }, ARRAY_FILTER_USE_BOTH);
-
-        return $invalidConditions;
-    }
-
-    /**
-     * @return array
-     */
     private function getTreeSearchingConditions(): array
     {
         $requestParams = $this->getRequest()
@@ -155,62 +210,22 @@ class Index extends Action
 
     /**
      * @param $fields
-     * @return array|void
+     * @return array
      */
-    public function buildFiltersFromConditions($fields)
+    public function buildFiltersFromConditions(array $fields): array
     {
         $filters = [];
 
         foreach ($fields as $fieldName => $fieldValue) {
-            if (! in_array($fieldName, $this->treeFactory::TREE_FIELDS, \true)) {
-                echo __("Trees entities have no fields {$fieldName}.");
-
-                return;
-            }
-
             $filter = $this->filterFactory->create();
 
             $filter->setField($fieldName)
                 ->setValue($fieldValue)
-                ->getConditionType('=');
+                ->setConditionType('=');
 
             $filters[] = $filter;
         }
 
         return $filters;
-    }
-
-    /**
-     * @param array $invalidConditions
-     */
-    private function renderInvalidConditions($invalidConditions): void
-    {
-        $invalidFields = array_keys($invalidConditions);
-
-        $pluralDetected = count($invalidFields) > 1;
-
-        if ($pluralDetected) {
-            $invalidFieldsListing = implode(', ', $invalidFields);
-            $message = __('Trees entities have no fields ') . $invalidFieldsListing .'.';
-        } else {
-            $invalidField = $invalidFields[0];
-            $message = __('Trees entities have no field ') . $invalidField .'.';
-        }
-
-        echo '<p>' . $message . '</p>';
-    }
-
-    /**
-     * @param Tree[] $trees
-     */
-    private function renderTreesList($trees): void
-    {
-        echo '<table><tr><td>id</td><td>name</td></tr>';
-
-        foreach($trees as $tree) {
-            echo "<tr><td>{$tree->getData('id')}</td><td>{$tree->getData('name')}</td></tr>";
-        }
-
-        echo '</table>';
     }
 }
