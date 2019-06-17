@@ -4,7 +4,7 @@ namespace Katheroine\Forest\Model;
 
 use Katheroine\Forest\Model\ResourceModel\Tree\CollectionFactory as TreeCollectionFactory;
 use Magento\Framework\Api\SearchCriteriaInterface;
-use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
+use Katheroine\Forest\Model\ResourceModel\Tree\Collection;
 
 class TreeRepository
 {
@@ -28,7 +28,7 @@ class TreeRepository
 
     /**
      * @param SearchCriteriaInterface $searchCriteria
-     * @return ResourceModel\Tree\Collection
+     * @return Collection
      */
     public function getList(SearchCriteriaInterface $searchCriteria)
     {
