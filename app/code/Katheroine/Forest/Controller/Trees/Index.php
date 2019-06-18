@@ -6,8 +6,8 @@ use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\Api\FilterFactory;
 use Magento\Framework\Api\Search\FilterGroupBuilder;
+use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
-use Magento\Framework\Api\SortOrder;
 use Katheroine\Forest\Model\TreeFactory;
 use Katheroine\Forest\Model\TreeRepository;
 use Magento\Framework\App\ResponseInterface;
@@ -27,14 +27,14 @@ class Index extends Action
     private $filterGroupBuilder;
 
     /**
+     * @var SortOrderBuilder
+     */
+    private $sortOrderBuilder;
+
+    /**
      * @var SearchCriteriaInterface
      */
     private $searchCriteria;
-
-    /**
-     * @var SortOrder
-     */
-    private $sortOrder;
 
     /**
      * @var TreeFactory
@@ -61,8 +61,8 @@ class Index extends Action
      * @param Context $context
      * @param FilterFactory $filterFactory
      * @param FilterGroupBuilder $filterGroupBuilder
+     * @param SortOrderBuilder $sortOrderBuilder
      * @param SearchCriteriaInterface $searchCriteria
-     * @param SortOrder $sortOrder
      * @param TreeFactory $treeFactory
      * @param TreeRepository $treeRepository
      */
@@ -70,15 +70,15 @@ class Index extends Action
         Context $context,
         FilterFactory $filterFactory,
         FilterGroupBuilder $filterGroupBuilder,
+        SortOrderBuilder $sortOrderBuilder,
         SearchCriteriaInterface $searchCriteria,
-        SortOrder $sortOrder,
         TreeFactory $treeFactory,
         TreeRepository $treeRepository
     ) {
         $this->filterFactory = $filterFactory;
         $this->filterGroupBuilder = $filterGroupBuilder;
+        $this->sortOrderBuilder = $sortOrderBuilder;
         $this->searchCriteria = $searchCriteria;
-        $this->sortOrder = $sortOrder;
         $this->treeFactory = $treeFactory;
         $this->treeRepository = $treeRepository;
 
@@ -170,8 +170,10 @@ class Index extends Action
             $this->filterGroupBuilder->create()
         ]);
 
-        $this->initSortOrder();
-        $this->searchCriteria->setSortOrders([$this->sortOrder]);
+        $this->setupSortOrderBuilder();
+        $this->searchCriteria->setSortOrders([
+            $this->sortOrderBuilder->create()
+        ]);
 
         $this->searchCriteria->setCurrentPage(1);
     }
@@ -185,11 +187,11 @@ class Index extends Action
         $this->filterGroupBuilder->setFilters($filters);
     }
 
-    private function initSortOrder(): void
+    private function setupSortOrderBuilder(): void
     {
-        $this->sortOrder
+        $this->sortOrderBuilder
             ->setField('name')
-            ->setDirection('ASC');
+            ->setAscendingDirection();
     }
 
     /**
