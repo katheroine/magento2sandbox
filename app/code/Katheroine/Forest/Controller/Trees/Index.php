@@ -5,7 +5,7 @@ namespace Katheroine\Forest\Controller\Trees;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\Api\FilterFactory;
-use Magento\Framework\Api\Search\FilterGroup;
+use Magento\Framework\Api\Search\FilterGroupBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Framework\Api\SortOrder;
 use Katheroine\Forest\Model\TreeFactory;
@@ -22,9 +22,9 @@ class Index extends Action
     private $filterFactory;
 
     /**
-     * @var FilterGroup
+     * @var FilterGroupBuilder
      */
-    private $filterGroup;
+    private $filterGroupBuilder;
 
     /**
      * @var SearchCriteriaInterface
@@ -60,7 +60,7 @@ class Index extends Action
     /**
      * @param Context $context
      * @param FilterFactory $filterFactory
-     * @param FilterGroup $filterGroup
+     * @param FilterGroupBuilder $filterGroupBuilder
      * @param SearchCriteriaInterface $searchCriteria
      * @param SortOrder $sortOrder
      * @param TreeFactory $treeFactory
@@ -69,14 +69,14 @@ class Index extends Action
     public function __construct(
         Context $context,
         FilterFactory $filterFactory,
-        FilterGroup $filterGroup,
+        FilterGroupBuilder $filterGroupBuilder,
         SearchCriteriaInterface $searchCriteria,
         SortOrder $sortOrder,
         TreeFactory $treeFactory,
         TreeRepository $treeRepository
     ) {
         $this->filterFactory = $filterFactory;
-        $this->filterGroup = $filterGroup;
+        $this->filterGroupBuilder = $filterGroupBuilder;
         $this->searchCriteria = $searchCriteria;
         $this->sortOrder = $sortOrder;
         $this->treeFactory = $treeFactory;
@@ -159,16 +159,15 @@ class Index extends Action
     private function loadTrees(): TreeCollection
     {
         $this->initSearchCriteria();
-        $trees = $this->treeRepository->getList($this->searchCriteria);
 
-        return $trees;
+        return $this->treeRepository->getList($this->searchCriteria);
     }
 
     private function initSearchCriteria(): void
     {
-        $this->initFilterGroup();
+        $this->fillFilterGroupBuilderWithFilters();
         $this->searchCriteria->setFilterGroups([
-            $this->filterGroup
+            $this->filterGroupBuilder->create()
         ]);
 
         $this->initSortOrder();
@@ -177,13 +176,13 @@ class Index extends Action
         $this->searchCriteria->setCurrentPage(1);
     }
 
-    private function initFilterGroup(): void
+    private function fillFilterGroupBuilderWithFilters(): void
     {
         $searchingConditions = $this->getTreeSearchingConditions();
 
         $filters = $this->buildFiltersFromConditions($searchingConditions);
 
-        $this->filterGroup->setFilters($filters);
+        $this->filterGroupBuilder->setFilters($filters);
     }
 
     private function initSortOrder(): void
@@ -212,7 +211,7 @@ class Index extends Action
      * @param $fields
      * @return array
      */
-    public function buildFiltersFromConditions(array $fields): array
+    private function buildFiltersFromConditions(array $fields): array
     {
         $filters = [];
 
