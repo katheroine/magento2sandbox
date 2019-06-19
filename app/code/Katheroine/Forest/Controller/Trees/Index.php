@@ -174,8 +174,6 @@ class Index extends Action
         $this->searchCriteria->setSortOrders([
             $this->sortOrderBuilder->create()
         ]);
-
-        $this->searchCriteria->setCurrentPage(1);
     }
 
     private function fillFilterGroupBuilderWithFilters(): void
