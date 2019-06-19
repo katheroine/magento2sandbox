@@ -116,41 +116,113 @@ class Index extends Action
         $requestParams = $this->getRequest()
             ->getParams();
 
-        $invalidConditions = array_filter($requestParams, function($paramValue, $paramKey) {
-            return !in_array($paramKey, $this->treeFactory::TREE_FIELDS, \true);
-        }, ARRAY_FILTER_USE_BOTH);
+        $invalidConditions = array_filter(
+            $requestParams,
+            [$this, 'searchConditionIsValid'],
+            ARRAY_FILTER_USE_BOTH
+        );
 
         return $invalidConditions;
     }
 
+    /**
+     * @param string $conditionValue
+     * @param string $conditionFieldName
+     * @return bool
+     */
+    private function searchConditionIsValid(
+        string $conditionValue,
+        string $conditionFieldName
+    ): bool {
+        return !in_array(
+            $conditionFieldName,
+            $this->treeFactory::TREE_FIELDS,
+            \true
+        );
+    }
+
     private function renderInvalidConditions(): void
     {
-        $invalidFields = array_keys($this->invalidConditions);
+        $invalidFields = $this->getInvalidFields();
 
+        $message = $this->buildMessageFromInvalidFields($invalidFields);
+
+        echo '<p>' . $message . '</p>';
+    }
+
+    /**
+     * @return array
+     */
+    private function getInvalidFields(): array
+    {
+        return array_keys($this->invalidConditions);
+    }
+
+    /**
+     * @param array $invalidFields
+     * @return string
+     */
+    private function buildMessageFromInvalidFields(array $invalidFields): string
+    {
         $pluralDetected = count($invalidFields) > 1;
 
         if ($pluralDetected) {
-            $invalidFieldsListing = implode(', ', $invalidFields);
-            $message = __('Trees entities have no fields ') . $invalidFieldsListing .'.';
+            $message = $this->buildPluralFormMessageFromInvalidFields($invalidFields);
         } else {
-            $invalidField = $invalidFields[0];
-            $message = __('Trees entities have no field ') . $invalidField .'.';
+            $message = $this->buildSingularFormMessageFromInvalidFields($invalidFields);
         }
 
-        echo '<p>' . $message . '</p>';
+        return $message;
+    }
+
+    /**
+     * @param array $invalidFields
+     * @return string
+     */
+    private function buildPluralFormMessageFromInvalidFields(array $invalidFields): string
+    {
+        $invalidFieldsListing = implode(', ', $invalidFields);
+        $message = __('Trees entities have no fields ') . $invalidFieldsListing .'.';
+
+        return $message;
+    }
+
+    /**
+     * @param array $invalidFields
+     * @return string
+     */
+    private function buildSingularFormMessageFromInvalidFields(array $invalidFields): string
+    {
+        $invalidField = $invalidFields[0];
+        $message = __('Trees entities have no field ') . $invalidField .'.';
+
+        return $message;
     }
 
     private function renderTreesList(): void
     {
         $trees = $this->loadTrees();
 
-        echo '<table><tr><td>id</td><td>name</td></tr>';
+        echo $this->buildTreesTable($trees);
+    }
 
-        foreach($trees as $tree) {
-            echo "<tr><td>{$tree->getData('id')}</td><td>{$tree->getData('name')}</td></tr>";
+    /**
+     * @param array $trees
+     * @return string
+     */
+    private function buildTreesTable(TreeCollection $trees): string
+    {
+        $header = '<tr><td>id</td><td>name</td></tr>';
+
+        $rows = '';
+
+        foreach ($trees as $tree) {
+            $rows .= "<tr><td>{$tree->getData('id')}</td><td>{$tree->getData('name')}</td></tr>";
         }
 
-        echo '</table>';
+        $table = '<table>' . $header . $rows . '</table>';
+
+        return $table;
     }
 
     /**
