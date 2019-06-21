@@ -13,6 +13,7 @@ use Katheroine\Forest\Model\TreeRepository;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Katheroine\Forest\Model\ResourceModel\Tree\Collection as TreeCollection;
+use Magento\Framework\Api\Filter;
 
 class Index extends Action
 {
@@ -116,9 +117,9 @@ class Index extends Action
         $requestParams = $this->getRequest()
             ->getParams();
 
-        $invalidConditions = array_filter(
+        $invalidConditions = \array_filter(
             $requestParams,
-            [$this, 'searchConditionIsValid'],
+            [$this, 'searchConditionIsInvalid'],
             ARRAY_FILTER_USE_BOTH
         );
 
@@ -130,11 +131,11 @@ class Index extends Action
      * @param string $conditionFieldName
      * @return bool
      */
-    private function searchConditionIsValid(
+    private function searchConditionIsInvalid(
         string $conditionValue,
         string $conditionFieldName
     ): bool {
-        return !in_array(
+        return !\in_array(
             $conditionFieldName,
             $this->treeFactory::TREE_FIELDS,
             \true
@@ -230,38 +231,32 @@ class Index extends Action
      */
     private function loadTrees(): TreeCollection
     {
-        $this->initSearchCriteria();
+        $this->setupSearchCriteria();
 
         return $this->treeRepository->getList($this->searchCriteria);
     }
 
-    private function initSearchCriteria(): void
+    private function setupSearchCriteria(): void
     {
-        $this->fillFilterGroupBuilderWithFilters();
+        $this->setFilterGroupWithinSearchCriteria();
+        $this->setSortOrderWithinSearchCriteria();
+    }
+
+    private function setFilterGroupWithinSearchCriteria(): void
+    {
+        $this->setFiltersWithinFilterGroupBuilder();
         $this->searchCriteria->setFilterGroups([
             $this->filterGroupBuilder->create()
         ]);
-
-        $this->setupSortOrderBuilder();
-        $this->searchCriteria->setSortOrders([
-            $this->sortOrderBuilder->create()
-        ]);
     }
 
-    private function fillFilterGroupBuilderWithFilters(): void
+    private function setFiltersWithinFilterGroupBuilder(): void
     {
         $searchingConditions = $this->getTreeSearchingConditions();
 
         $filters = $this->buildFiltersFromConditions($searchingConditions);
 
         $this->filterGroupBuilder->setFilters($filters);
-    }
-
-    private function setupSortOrderBuilder(): void
-    {
-        $this->sortOrderBuilder
-            ->setField('name')
-            ->setAscendingDirection();
     }
 
     /**
@@ -272,31 +267,78 @@ class Index extends Action
         $requestParams = $this->getRequest()
             ->getParams();
 
-        $treeConditions = array_filter($requestParams, function($paramValue, $paramKey) {
-            return in_array($paramKey, $this->treeFactory::TREE_FIELDS, \true);
-        }, ARRAY_FILTER_USE_BOTH);
+        $treeConditions = \array_filter(
+            $requestParams,
+            [$this, 'searchConditionIsValid'],
+            ARRAY_FILTER_USE_BOTH);
 
         return $treeConditions;
     }
 
     /**
-     * @param $fields
+     * @param string $conditionValue
+     * @param string $conditionFieldName
+     * @return bool
+     */
+    private function searchConditionIsValid(
+        string $conditionValue,
+        string $conditionFieldName
+    ): bool {
+        return \in_array(
+            $conditionFieldName,
+            $this->treeFactory::TREE_FIELDS,
+            \true
+        );
+    }
+
+    /**
+     * @param array $conditions
      * @return array
      */
-    private function buildFiltersFromConditions(array $fields): array
+    private function buildFiltersFromConditions(array $conditions): array
     {
         $filters = [];
 
-        foreach ($fields as $fieldName => $fieldValue) {
-            $filter = $this->filterFactory->create();
-
-            $filter->setField($fieldName)
-                ->setValue($fieldValue)
-                ->setConditionType('=');
-
-            $filters[] = $filter;
+        foreach ($conditions as $conditionFieldName => $conditionValue) {
+            $filters[] = $this->buildFilterFromConditionFieldNameAndValue(
+                $conditionFieldName,
+                $conditionValue
+            );
         }
 
         return $filters;
+    }
+
+    /**
+     * @param string $conditionFieldName
+     * @param string $conditionValue
+     * @return Filter
+     */
+    private function buildFilterFromConditionFieldNameAndValue(
+        string $conditionFieldName,
+        string $conditionValue
+    ): Filter {
+        $filter = $this->filterFactory->create();
+
+        $filter->setField($conditionFieldName)
+            ->setValue($conditionValue)
+            ->setConditionType('=');
+
+        return $filter;
+    }
+
+    private function setSortOrderWithinSearchCriteria(): void
+    {
+        $this->setupSortOrderBuilder();
+        $this->searchCriteria->setSortOrders([
+            $this->sortOrderBuilder->create()
+        ]);
+    }
+
+    private function setupSortOrderBuilder(): void
+    {
+        $this->sortOrderBuilder
+            ->setField('name')
+            ->setAscendingDirection();
     }
 }
