@@ -102,6 +102,9 @@ class Index extends Action
         $this->renderTreesList();
     }
 
+    /**
+     * @return void
+     */
     private function validateConditions(): void
     {
         $this->invalidConditions = $this->getInvalidConditions();
@@ -119,7 +122,7 @@ class Index extends Action
 
         $invalidConditions = \array_filter(
             $requestParams,
-            [$this, 'searchConditionIsInvalid'],
+            [$this, 'isSearchConditionInvalid'],
             ARRAY_FILTER_USE_BOTH
         );
 
@@ -131,7 +134,7 @@ class Index extends Action
      * @param string $conditionFieldName
      * @return bool
      */
-    private function searchConditionIsInvalid(
+    private function isSearchConditionInvalid(
         string $conditionValue,
         string $conditionFieldName
     ): bool {
@@ -142,21 +145,16 @@ class Index extends Action
         );
     }
 
+    /**
+     * @return void
+     */
     private function renderInvalidConditions(): void
     {
-        $invalidFields = $this->getInvalidFields();
+        $invalidFields = array_keys($this->invalidConditions);
 
         $message = $this->buildMessageFromInvalidFields($invalidFields);
 
         echo '<p>' . $message . '</p>';
-    }
-
-    /**
-     * @return array
-     */
-    private function getInvalidFields(): array
-    {
-        return array_keys($this->invalidConditions);
     }
 
     /**
@@ -200,6 +198,9 @@ class Index extends Action
         return $message;
     }
 
+    /**
+     * @return void
+     */
     private function renderTreesList(): void
     {
         $trees = $this->loadTrees();
@@ -208,7 +209,7 @@ class Index extends Action
     }
 
     /**
-     * @param array $trees
+     * @param TreeCollection $trees
      * @return string
      */
     private function buildTreesTable(TreeCollection $trees): string
@@ -236,12 +237,18 @@ class Index extends Action
         return $this->treeRepository->getList($this->searchCriteria);
     }
 
+    /**
+     * @return void
+     */
     private function setupSearchCriteria(): void
     {
         $this->setFilterGroupWithinSearchCriteria();
         $this->setSortOrderWithinSearchCriteria();
     }
 
+    /**
+     * @return void
+     */
     private function setFilterGroupWithinSearchCriteria(): void
     {
         $this->setFiltersWithinFilterGroupBuilder();
@@ -250,6 +257,9 @@ class Index extends Action
         ]);
     }
 
+    /**
+     * @return void
+     */
     private function setFiltersWithinFilterGroupBuilder(): void
     {
         $searchingConditions = $this->getTreeSearchingConditions();
@@ -269,7 +279,7 @@ class Index extends Action
 
         $treeConditions = \array_filter(
             $requestParams,
-            [$this, 'searchConditionIsValid'],
+            [$this, 'isSearchConditionValid'],
             ARRAY_FILTER_USE_BOTH);
 
         return $treeConditions;
@@ -280,7 +290,7 @@ class Index extends Action
      * @param string $conditionFieldName
      * @return bool
      */
-    private function searchConditionIsValid(
+    private function isSearchConditionValid(
         string $conditionValue,
         string $conditionFieldName
     ): bool {
@@ -327,6 +337,9 @@ class Index extends Action
         return $filter;
     }
 
+    /**
+     * @return void
+     */
     private function setSortOrderWithinSearchCriteria(): void
     {
         $this->setupSortOrderBuilder();
@@ -335,6 +348,9 @@ class Index extends Action
         ]);
     }
 
+    /**
+     * @return void
+     */
     private function setupSortOrderBuilder(): void
     {
         $this->sortOrderBuilder
