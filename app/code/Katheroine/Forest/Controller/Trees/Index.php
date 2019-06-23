@@ -57,7 +57,6 @@ class Index extends Action
      */
     private $invalidConditions;
 
-
     /**
      * @param Context $context
      * @param FilterFactory $filterFactory
