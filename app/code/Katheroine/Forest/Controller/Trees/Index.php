@@ -57,7 +57,6 @@ class Index extends Action
      */
     private $invalidConditions;
 
-
     /**
      * @param Context $context
      * @param FilterFactory $filterFactory
@@ -127,22 +126,6 @@ class Index extends Action
         );
 
         return $invalidConditions;
-    }
-
-    /**
-     * @param string $conditionValue
-     * @param string $conditionFieldName
-     * @return bool
-     */
-    private function isSearchConditionInvalid(
-        string $conditionValue,
-        string $conditionFieldName
-    ): bool {
-        return !\in_array(
-            $conditionFieldName,
-            $this->treeFactory::TREE_FIELDS,
-            \true
-        );
     }
 
     /**
@@ -286,22 +269,6 @@ class Index extends Action
     }
 
     /**
-     * @param string $conditionValue
-     * @param string $conditionFieldName
-     * @return bool
-     */
-    private function isSearchConditionValid(
-        string $conditionValue,
-        string $conditionFieldName
-    ): bool {
-        return \in_array(
-            $conditionFieldName,
-            $this->treeFactory::TREE_FIELDS,
-            \true
-        );
-    }
-
-    /**
      * @param array $conditions
      * @return array
      */
@@ -356,5 +323,37 @@ class Index extends Action
         $this->sortOrderBuilder
             ->setField('name')
             ->setAscendingDirection();
+    }
+
+    /**
+     * @param string $conditionValue
+     * @param string $conditionFieldName
+     * @return bool
+     */
+    private function isSearchConditionValid(
+        string $conditionValue,
+        string $conditionFieldName
+    ): bool {
+        return \in_array(
+            $conditionFieldName,
+            $this->treeFactory::TREE_FIELDS,
+            \true
+        );
+    }
+
+    /**
+     * @param string $conditionValue
+     * @param string $conditionFieldName
+     * @return bool
+     */
+    private function isSearchConditionInvalid(
+        string $conditionValue,
+        string $conditionFieldName
+    ): bool {
+        return !\in_array(
+            $conditionFieldName,
+            $this->treeFactory::TREE_FIELDS,
+            \true
+        );
     }
 }
