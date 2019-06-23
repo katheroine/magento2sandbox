@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="katheroine_forest_trees" resource="default" engine="innodb" comment="Trees from our forest">
+        <column xsi:type="int" name="id" unsigned="false" nullable="false" identity="true" comment="Tree ID"/>
+        <column xsi:type="text" name="name" nullable="true" comment="Common name of the tree"/>
+        <column xsi:type="text" name="type" nullable="true" comment="[broad-leaved|coniferous]"/>
+        <column xsi:type="boolean" name="all-year" nullable="true" comment="Has leafs/needles all year round"/>
+        <column xsi:type="text" name="description" nullable="true" comment="Additional information"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+    </table>
+</schema>
