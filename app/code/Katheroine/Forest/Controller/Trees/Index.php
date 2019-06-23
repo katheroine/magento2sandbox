@@ -130,22 +130,6 @@ class Index extends Action
     }
 
     /**
-     * @param string $conditionValue
-     * @param string $conditionFieldName
-     * @return bool
-     */
-    private function isSearchConditionInvalid(
-        string $conditionValue,
-        string $conditionFieldName
-    ): bool {
-        return !\in_array(
-            $conditionFieldName,
-            $this->treeFactory::TREE_FIELDS,
-            \true
-        );
-    }
-
-    /**
      * @return void
      */
     private function renderInvalidConditions(): void
@@ -286,22 +270,6 @@ class Index extends Action
     }
 
     /**
-     * @param string $conditionValue
-     * @param string $conditionFieldName
-     * @return bool
-     */
-    private function isSearchConditionValid(
-        string $conditionValue,
-        string $conditionFieldName
-    ): bool {
-        return \in_array(
-            $conditionFieldName,
-            $this->treeFactory::TREE_FIELDS,
-            \true
-        );
-    }
-
-    /**
      * @param array $conditions
      * @return array
      */
@@ -356,5 +324,37 @@ class Index extends Action
         $this->sortOrderBuilder
             ->setField('name')
             ->setAscendingDirection();
+    }
+
+    /**
+     * @param string $conditionValue
+     * @param string $conditionFieldName
+     * @return bool
+     */
+    private function isSearchConditionValid(
+        string $conditionValue,
+        string $conditionFieldName
+    ): bool {
+        return \in_array(
+            $conditionFieldName,
+            $this->treeFactory::TREE_FIELDS,
+            \true
+        );
+    }
+
+    /**
+     * @param string $conditionValue
+     * @param string $conditionFieldName
+     * @return bool
+     */
+    private function isSearchConditionInvalid(
+        string $conditionValue,
+        string $conditionFieldName
+    ): bool {
+        return !\in_array(
+            $conditionFieldName,
+            $this->treeFactory::TREE_FIELDS,
+            \true
+        );
     }
 }
