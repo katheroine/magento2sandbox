@@ -4,7 +4,7 @@ namespace Katheroine\Forest\Controller\Trees;
 
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
-use Magento\Framework\Api\FilterFactory;
+use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\Search\FilterGroupBuilder;
 use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -17,9 +17,9 @@ use Magento\Framework\Api\Filter;
 class Index extends Action
 {
     /**
-     * @var FilterFactory
+     * @var $filterBuilder
      */
-    private $filterFactory;
+    private $filterBuilder;
 
     /**
      * @var FilterGroupBuilder
@@ -53,7 +53,7 @@ class Index extends Action
 
     /**
      * @param Context $context
-     * @param FilterFactory $filterFactory
+     * @param FilterBuilder $filterBuilder
      * @param FilterGroupBuilder $filterGroupBuilder
      * @param SortOrderBuilder $sortOrderBuilder
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
@@ -61,13 +61,13 @@ class Index extends Action
      */
     public function __construct(
         Context $context,
-        FilterFactory $filterFactory,
+        FilterBuilder $filterBuilder,
         FilterGroupBuilder $filterGroupBuilder,
         SortOrderBuilder $sortOrderBuilder,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         TreeRepository $treeRepository
     ) {
-        $this->filterFactory = $filterFactory;
+        $this->filterBuilder = $filterBuilder;
         $this->filterGroupBuilder = $filterGroupBuilder;
         $this->sortOrderBuilder = $sortOrderBuilder;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
@@ -288,13 +288,11 @@ class Index extends Action
         string $conditionFieldName,
         string $conditionValue
     ): Filter {
-        $filter = $this->filterFactory->create();
-
-        $filter->setField($conditionFieldName)
+        return $this->filterBuilder
+            ->setField($conditionFieldName)
             ->setValue($conditionValue)
-            ->setConditionType('=');
-
-        return $filter;
+            ->setConditionType('=')
+            ->create();
     }
 
     /**
