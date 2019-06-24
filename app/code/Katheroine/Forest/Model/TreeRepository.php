@@ -25,20 +25,12 @@ class TreeRepository
     public const TREE_TYPE_CONIFEROUS = 'coniferous';
 
     /**
-     * @var TreeFactory
-     */
-    private $treeFactory;
-
-    /**
      * @var TreeCollectionFactory
      */
     private $treeCollectionFactory;
 
-    public function __construct(
-        TreeFactory $treeFactory,
-        TreeCollectionFactory $treeCollectionFactory
-    ) {
-        $this->treeFactory = $treeFactory;
+    public function __construct(TreeCollectionFactory $treeCollectionFactory)
+    {
         $this->treeCollectionFactory = $treeCollectionFactory;
     }
 
