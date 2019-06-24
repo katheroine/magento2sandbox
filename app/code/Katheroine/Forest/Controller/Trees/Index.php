@@ -8,7 +8,6 @@ use Magento\Framework\Api\FilterFactory;
 use Magento\Framework\Api\Search\FilterGroupBuilder;
 use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
-use Katheroine\Forest\Model\TreeFactory;
 use Katheroine\Forest\Model\TreeRepository;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
@@ -38,11 +37,6 @@ class Index extends Action
     private $searchCriteria;
 
     /**
-     * @var TreeFactory
-     */
-    private $treeFactory;
-
-    /**
      * @var TreeRepository
      */
     private $treeRepository;
@@ -63,7 +57,6 @@ class Index extends Action
      * @param FilterGroupBuilder $filterGroupBuilder
      * @param SortOrderBuilder $sortOrderBuilder
      * @param SearchCriteriaInterface $searchCriteria
-     * @param TreeFactory $treeFactory
      * @param TreeRepository $treeRepository
      */
     public function __construct(
@@ -72,14 +65,12 @@ class Index extends Action
         FilterGroupBuilder $filterGroupBuilder,
         SortOrderBuilder $sortOrderBuilder,
         SearchCriteriaInterface $searchCriteria,
-        TreeFactory $treeFactory,
         TreeRepository $treeRepository
     ) {
         $this->filterFactory = $filterFactory;
         $this->filterGroupBuilder = $filterGroupBuilder;
         $this->sortOrderBuilder = $sortOrderBuilder;
         $this->searchCriteria = $searchCriteria;
-        $this->treeFactory = $treeFactory;
         $this->treeRepository = $treeRepository;
 
         parent::__construct($context);
@@ -336,7 +327,7 @@ class Index extends Action
     ): bool {
         return \in_array(
             $conditionFieldName,
-            $this->treeFactory::TREE_FIELDS,
+            $this->treeRepository::TREE_FIELDS,
             \true
         );
     }
@@ -352,7 +343,7 @@ class Index extends Action
     ): bool {
         return !\in_array(
             $conditionFieldName,
-            $this->treeFactory::TREE_FIELDS,
+            $this->treeRepository::TREE_FIELDS,
             \true
         );
     }

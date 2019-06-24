@@ -7,22 +7,6 @@ use Magento\Framework\ObjectManagerInterface;
 class TreeFactory
 {
     /**
-     * Fields of the tree entity
-     */
-    public const TREE_FIELDS = [
-        'name',
-        'type',
-        'all-year',
-        'description'
-    ];
-
-    /**
-     * Types of the trees
-     */
-    public const TREE_TYPE_BROADLEAVED = 'broad-leaved';
-    public const TREE_TYPE_CONIFEROUS = 'coniferous';
-
-    /**
      * Object Manager instance
      *
      * @var ObjectManagerInterface
