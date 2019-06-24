@@ -9,6 +9,22 @@ use Katheroine\Forest\Model\ResourceModel\Tree\Collection;
 class TreeRepository
 {
     /**
+     * Fields of the tree entity
+     */
+    public const TREE_FIELDS = [
+        'name',
+        'type',
+        'all-year',
+        'description'
+    ];
+
+    /**
+     * Types of the trees
+     */
+    public const TREE_TYPE_BROADLEAVED = 'broad-leaved';
+    public const TREE_TYPE_CONIFEROUS = 'coniferous';
+
+    /**
      * @var TreeFactory
      */
     private $treeFactory;
