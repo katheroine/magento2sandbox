@@ -7,7 +7,7 @@ use Magento\Framework\App\Action\Context;
 use Magento\Framework\Api\FilterFactory;
 use Magento\Framework\Api\Search\FilterGroupBuilder;
 use Magento\Framework\Api\SortOrderBuilder;
-use Magento\Framework\Api\SearchCriteriaInterface;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 use Katheroine\Forest\Model\TreeRepository;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
@@ -32,9 +32,9 @@ class Index extends Action
     private $sortOrderBuilder;
 
     /**
-     * @var SearchCriteriaInterface
+     * @var SearchCriteriaBuilder
      */
-    private $searchCriteria;
+    private $searchCriteriaBuilder;
 
     /**
      * @var TreeRepository
@@ -56,7 +56,7 @@ class Index extends Action
      * @param FilterFactory $filterFactory
      * @param FilterGroupBuilder $filterGroupBuilder
      * @param SortOrderBuilder $sortOrderBuilder
-     * @param SearchCriteriaInterface $searchCriteria
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param TreeRepository $treeRepository
      */
     public function __construct(
@@ -64,13 +64,13 @@ class Index extends Action
         FilterFactory $filterFactory,
         FilterGroupBuilder $filterGroupBuilder,
         SortOrderBuilder $sortOrderBuilder,
-        SearchCriteriaInterface $searchCriteria,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
         TreeRepository $treeRepository
     ) {
         $this->filterFactory = $filterFactory;
         $this->filterGroupBuilder = $filterGroupBuilder;
         $this->sortOrderBuilder = $sortOrderBuilder;
-        $this->searchCriteria = $searchCriteria;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->treeRepository = $treeRepository;
 
         parent::__construct($context);
@@ -206,27 +206,29 @@ class Index extends Action
      */
     private function loadTrees(): TreeCollection
     {
-        $this->setupSearchCriteria();
+        $this->setupSearchCriteriaBuilder();
 
-        return $this->treeRepository->getList($this->searchCriteria);
+        return $this->treeRepository->getList(
+            $this->searchCriteriaBuilder->create()
+        );
     }
 
     /**
      * @return void
      */
-    private function setupSearchCriteria(): void
+    private function setupSearchCriteriaBuilder(): void
     {
-        $this->setFilterGroupWithinSearchCriteria();
-        $this->setSortOrderWithinSearchCriteria();
+        $this->setFilterGroupWithinSearchCriteriaBuilder();
+        $this->setSortOrderWithinSearchCriteriaBuilder();
     }
 
     /**
      * @return void
      */
-    private function setFilterGroupWithinSearchCriteria(): void
+    private function setFilterGroupWithinSearchCriteriaBuilder(): void
     {
         $this->setFiltersWithinFilterGroupBuilder();
-        $this->searchCriteria->setFilterGroups([
+        $this->searchCriteriaBuilder->setFilterGroups([
             $this->filterGroupBuilder->create()
         ]);
     }
@@ -298,10 +300,10 @@ class Index extends Action
     /**
      * @return void
      */
-    private function setSortOrderWithinSearchCriteria(): void
+    private function setSortOrderWithinSearchCriteriaBuilder(): void
     {
         $this->setupSortOrderBuilder();
-        $this->searchCriteria->setSortOrders([
+        $this->searchCriteriaBuilder->setSortOrders([
             $this->sortOrderBuilder->create()
         ]);
     }
