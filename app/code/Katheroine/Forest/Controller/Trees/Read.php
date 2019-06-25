@@ -37,49 +37,124 @@ class Read extends Action
         $requestParams = $this->getRequest()
             ->getParams();
 
-        $invalidConditions = \array_filter(
+        $invalidConditions = $this->extractInvalidConditionsFromRequestParams($requestParams);
+
+        if (!empty($invalidConditions)) {
+            $this->renderInvalidConditions($invalidConditions);
+        } elseif (!isset($requestParams['id'])) {
+            $this->renderNoIdParameterMessage();
+        } else {
+            $id = (int) $requestParams['id'];
+            $this->renderTreeOfGivenId($id);
+        }
+    }
+
+    /**
+     * @param array $requestParams
+     * @return string[]
+     */
+    private function extractInvalidConditionsFromRequestParams(array $requestParams): array
+    {
+        return \array_filter(
             $requestParams,
-            function (string $conditionValue, string $conditionFieldName): bool {
-                return ($conditionFieldName !== 'id');
-            },
+            [$this, 'isSearchConditionInvalid'],
             ARRAY_FILTER_USE_BOTH
         );
+    }
 
+    /**
+     * @param string $conditionValue
+     * @param string $conditionFieldName
+     * @return bool
+     */
+    private function isSearchConditionInvalid(
+        string $conditionValue,
+        string $conditionFieldName
+    ): bool {
+        return ($conditionFieldName !== 'id');
+    }
+
+    /**
+     * @param array $invalidConditions
+     * @return void
+     */
+    private function renderInvalidConditions(array $invalidConditions): void
+    {
         $invalidFields = array_keys($invalidConditions);
 
-        if (!empty($invalidFields)) {
-            $pluralDetected = count($invalidFields) > 1;
+        $message = $this->buildMessageFromInvalidFields($invalidFields);
 
-            if ($pluralDetected) {
-                $invalidFieldsListing = implode(', ', $invalidFields);
-                $message = __('Trees entities have no fields ') . $invalidFieldsListing . '.';
-            } else {
-                $invalidField = $invalidFields[0];
-                $message = __('Trees entities have no field ') . $invalidField . '.';
-            }
+        echo '<p>' . $message . '</p>';
+    }
 
-            echo '<p>' . $message . '</p>';
+    /**
+     * @param array $invalidFields
+     * @return string
+     */
+    private function buildMessageFromInvalidFields(array $invalidFields): string
+    {
+        $pluralDetected = count($invalidFields) > 1;
+
+        if ($pluralDetected) {
+            $message = $this->buildPluralFormMessageFromInvalidFields($invalidFields);
         } else {
-            if (!isset($requestParams['id'])) {
-                echo '<p>' . __("There is no ID parametr given.") . '</p>';
-            } else {
-                $id = $requestParams['id'];
+            $message = $this->buildSingularFormMessageFromInvalidFields($invalidFields);
+        }
 
-                try {
-                    $tree = $this->treeRepository->getById((int)$id);
+        return $message;
+    }
 
-                    echo "<h2>Tree ID: {$id}</h2>
-                    <table>
-                        <tr><td>id: </td><td>{$tree->getId()}</td></tr>
-                        <tr><td>name: </td><td>{$tree->getData('name')}</td></tr>
-                        <tr><td>type: </td><td>{$tree->getData('type')}</td></tr>
-                        <tr><td>all-year: </td><td>{$tree->getData('all-year')}</td></tr>
-                        <tr><td>description: </td><td>{$tree->getData('description')}</td></tr>
-                    </table>";
-                } catch (NoSuchEntityException $exception) {
-                    echo '<p>' . __('No such entity with ID ') . $id . '</p>';
-                }
-            }
+    /**
+     * @param array $invalidFields
+     * @return string
+     */
+    private function buildPluralFormMessageFromInvalidFields(array $invalidFields): string
+    {
+        $invalidFieldsListing = implode(', ', $invalidFields);
+        $message = __('Trees entities have no fields ') . $invalidFieldsListing .'.';
+
+        return $message;
+    }
+
+    /**
+     * @param array $invalidFields
+     * @return string
+     */
+    private function buildSingularFormMessageFromInvalidFields(array $invalidFields): string
+    {
+        $invalidField = $invalidFields[0];
+        $message = __('Trees entities have no field ') . $invalidField .'.';
+
+        return $message;
+    }
+
+    /**
+     * @return void
+     */
+    private function renderNoIdParameterMessage(): void
+    {
+        echo '<p>' . __("There is no ID parametr given.") . '</p>';
+    }
+
+    /**
+     * @param int $id
+     * @return void
+     */
+    private function renderTreeOfGivenId(int $id): void
+    {
+        try {
+            $tree = $this->treeRepository->getById($id);
+
+            echo "<h2>Tree ID: {$id}</h2>
+            <table>
+                <tr><td>id: </td><td>{$tree->getId()}</td></tr>
+                <tr><td>name: </td><td>{$tree->getData('name')}</td></tr>
+                <tr><td>type: </td><td>{$tree->getData('type')}</td></tr>
+                <tr><td>all-year: </td><td>{$tree->getData('all-year')}</td></tr>
+                <tr><td>description: </td><td>{$tree->getData('description')}</td></tr>
+            </table>";
+        } catch (NoSuchEntityException $exception) {
+            echo '<p>' . __('No such entity with ID ') . $id . '</p>';
         }
     }
 }
