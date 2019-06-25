@@ -5,6 +5,8 @@ namespace Katheroine\Forest\Model;
 use Katheroine\Forest\Model\ResourceModel\Tree\CollectionFactory as TreeCollectionFactory;
 use Magento\Framework\Api\SearchCriteriaInterface;
 use Katheroine\Forest\Model\ResourceModel\Tree\Collection;
+use Katheroine\Forest\Model\ResourceModel\Tree as TreeResource;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 class TreeRepository
 {
@@ -25,13 +27,34 @@ class TreeRepository
     public const TREE_TYPE_CONIFEROUS = 'coniferous';
 
     /**
+     * @var TreeFactory
+     */
+    private $treeFactory;
+
+    /**
      * @var TreeCollectionFactory
      */
     private $treeCollectionFactory;
 
-    public function __construct(TreeCollectionFactory $treeCollectionFactory)
-    {
+    /**
+     * @var TreeResource
+     */
+    private $treeResource;
+
+    /**
+     * TreeRepository constructor.
+     * @param TreeFactory $treeFactory
+     * @param TreeCollectionFactory $treeCollectionFactory
+     * @param TreeResource $treeResource
+     */
+    public function __construct(
+        TreeFactory $treeFactory,
+        TreeCollectionFactory $treeCollectionFactory,
+        TreeResource $treeResource
+    ) {
+        $this->treeFactory = $treeFactory;
         $this->treeCollectionFactory = $treeCollectionFactory;
+        $this->treeResource = $treeResource;
     }
 
     /**
@@ -50,5 +73,26 @@ class TreeRepository
         }
 
         return $collection;
+    }
+
+    /**
+     * @param int $id
+     * @return Tree
+     * @throws NoSuchEntityException
+     */
+    public function getById(int $id)
+    {
+        $tree = $this->treeFactory->create();
+
+        $this->treeResource->load(
+            $tree,
+            $id
+        );
+
+        if (!$tree->getId()) {
+            throw new NoSuchEntityException();
+        }
+
+        return $tree;
     }
 }
