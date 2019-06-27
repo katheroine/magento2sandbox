@@ -6,7 +6,6 @@ use Katheroine\Forest\Model\ResourceModel\Tree\CollectionFactory as TreeCollecti
 use Magento\Framework\Api\SearchCriteriaInterface;
 use Katheroine\Forest\Model\ResourceModel\Tree\Collection;
 use Katheroine\Forest\Model\ResourceModel\Tree as TreeResource;
-use Magento\Framework\Exception\NoSuchEntityException;
 
 class TreeRepository
 {
@@ -78,7 +77,6 @@ class TreeRepository
     /**
      * @param int $id
      * @return Tree
-     * @throws NoSuchEntityException
      */
     public function getById(int $id)
     {
@@ -88,10 +86,6 @@ class TreeRepository
             $tree,
             $id
         );
-
-        if (!$tree->getId()) {
-            throw new NoSuchEntityException();
-        }
 
         return $tree;
     }
