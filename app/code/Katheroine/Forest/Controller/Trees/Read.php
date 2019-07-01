@@ -66,27 +66,30 @@ class Read extends Action
      */
     private function validateConditions(): void
     {
-        $requestParams = $this->getRequest()
-            ->getParams();
-
-        $this->redundantConditions = $this->extractRedundantConditionsFromRequestParams($requestParams);
-        $this->idIsPassed = isset($requestParams['id']);
+        $this->redundantConditions = $this->getRedundantConditions();
+        $idParam = $this->getRequest()
+            ->getParam('id');
+        $this->idIsPassed = ($idParam !== \null);
 
         $this->conditionsAreValid = empty($this->redundantConditions)
             && $this->idIsPassed;
     }
 
     /**
-     * @param array $requestParams
      * @return string[]
      */
-    private function extractRedundantConditionsFromRequestParams(array $requestParams): array
+    private function getRedundantConditions(): array
     {
-        return \array_filter(
+        $requestParams = $this->getRequest()
+            ->getParams();
+
+        $redundantConditions = \array_filter(
             $requestParams,
             [$this, 'isSearchConditionInvalid'],
             ARRAY_FILTER_USE_BOTH
         );
+
+        return $redundantConditions;
     }
 
     /**
@@ -123,48 +126,48 @@ class Read extends Action
     {
         $redundantFields = \array_keys($redundantConditions);
 
-        $message = $this->buildMessageFromInvalidFields($redundantFields);
+        $message = $this->buildMessageFromRedundantFields($redundantFields);
 
         return $message;
     }
 
     /**
-     * @param array $invalidFields
+     * @param array $redundantFields
      * @return string
      */
-    private function buildMessageFromInvalidFields(array $invalidFields): string
+    private function buildMessageFromRedundantFields(array $redundantFields): string
     {
-        $pluralDetected = \count($invalidFields) > 1;
+        $pluralDetected = \count($redundantFields) > 1;
 
         if ($pluralDetected) {
-            $message = $this->buildPluralFormMessageFromInvalidFields($invalidFields);
+            $message = $this->buildPluralFormMessageFromRedundantFields($redundantFields);
         } else {
-            $message = $this->buildSingularFormMessageFromInvalidFields($invalidFields);
+            $message = $this->buildSingularFormMessageFromRedundantFields($redundantFields);
         }
 
         return $message;
     }
 
     /**
-     * @param array $invalidFields
+     * @param array $redundantFields
      * @return string
      */
-    private function buildPluralFormMessageFromInvalidFields(array $invalidFields): string
+    private function buildPluralFormMessageFromRedundantFields(array $redundantFields): string
     {
-        $invalidFieldsListing = implode(', ', $invalidFields);
+        $invalidFieldsListing = implode(', ', $redundantFields);
         $message = __('Trees entities have no fields ') . $invalidFieldsListing .'.';
 
         return $message;
     }
 
     /**
-     * @param array $invalidFields
+     * @param array $redundantFields
      * @return string
      */
-    private function buildSingularFormMessageFromInvalidFields(array $invalidFields): string
+    private function buildSingularFormMessageFromRedundantFields(array $redundantFields): string
     {
-        $invalidField = $invalidFields[0];
-        $message = __('Trees entities have no field ') . $invalidField .'.';
+        $redundantField = $redundantFields[0];
+        $message = __('Trees entities have no field ') . $redundantField . '.';
 
         return $message;
     }
